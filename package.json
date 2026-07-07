@@ -9,23 +9,23 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "pdf-parse": "^1.1.1",
-    "mammoth": "^1.4.21",
-    "tesseract.js": "^4.1.1",
-    "file-type": "^18.0.0",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/adapter-neon": "^7.8.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
+    "file-type": "^18.0.0",
     "framer-motion": "^12.42.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.23.0",
+    "mammoth": "^1.4.21",
     "next": "16.2.10",
+    "pdf-parse": "^1.1.1",
     "pg": "^8.22.0",
     "prisma": "^7.8.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tesseract.js": "^4.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -36,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
+    "tsx": "^4.23.0",
     "typescript": "^5"
   }
 }
