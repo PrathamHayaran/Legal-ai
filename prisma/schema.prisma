@@ -1,0 +1,269 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoleName {
+  USER
+  LAWYER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VerificationStage {
+  PENDING
+  PARTIALLY_VERIFIED
+  IDENTITY_VERIFIED
+  BAR_VERIFIED
+  FULLY_VERIFIED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum MessageRole {
+  USER
+  LAWYER
+  SYSTEM
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  VERIFY
+  PAYMENT
+}
+
+model User {
+  id                String        @id @default(cuid())
+  email             String        @unique
+  passwordHash      String?
+  name              String?
+  role              RoleName      @default(USER)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  lawyerProfile     LawyerProfile?
+  documents         Document[]
+  reviews           Review[]
+  bookingsAsClient  Booking[]     @relation("ClientBookings")
+  messages          Message[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  subscriptions     Subscription[]
+  payments          Payment[]
+  contracts         Contract[]
+  verificationResults VerificationResult[]
+  verificationActions VerificationHistory[]
+}
+
+model LawyerProfile {
+  id                  String                @id @default(cuid())
+  userId              String                @unique
+  user                User                  @relation(fields: [userId], references: [id])
+  barNumber           String?
+  governmentIdUrl     String?
+  barCertificateUrl   String?
+  professionalDetails String?
+  faceVerificationUrl String?
+  verificationStatus  VerificationStatus    @default(PENDING)
+  verifiedAt          DateTime?
+  rating              Float                 @default(0)
+  experienceYears     Int                   @default(0)
+  hourlyRate          Decimal               @default(0)
+  practiceArea        String?
+  country             String?
+  state               String?
+  language            String?
+  bio                 String?
+  reviews             Review[]
+  bookings            Booking[]             @relation("LawyerBookings")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  verificationResults VerificationResult[]
+}
+
+model VerificationResult {
+  id               String             @id @default(cuid())
+  userId           String
+  user             User               @relation(fields: [userId], references: [id])
+  lawyerProfileId  String?
+  lawyerProfile    LawyerProfile?     @relation(fields: [lawyerProfileId], references: [id])
+  status           VerificationStage  @default(PENDING)
+  confidence       Int                @default(0)
+  extractedData    Json?
+  mismatches       String?
+  providerResponses Json?
+  documents        Document[]
+  history          VerificationHistory[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model VerificationHistory {
+  id                 String   @id @default(cuid())
+  verificationId     String
+  verification       VerificationResult @relation(fields: [verificationId], references: [id])
+  action             String
+  details            String?
+  performedByUserId  String?
+  performedBy        User?    @relation(fields: [performedByUserId], references: [id])
+  createdAt          DateTime @default(now())
+}
+
+model Document {
+  id                String          @id @default(cuid())
+  title             String
+  fileName          String
+  storageKey        String
+  content           String?
+  mimeType          String
+  ownerId           String
+  owner             User            @relation(fields: [ownerId], references: [id])
+  contractId        String?
+  contract          Contract?       @relation(fields: [contractId], references: [id])
+  verificationId    String?
+  verification      VerificationResult? @relation(fields: [verificationId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Contract {
+  id                String          @id @default(cuid())
+  title             String
+  ownerId           String
+  owner             User            @relation(fields: [ownerId], references: [id])
+  documents         Document[]
+  riskReports       RiskReport[]
+  messages          Message[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model RiskReport {
+  id                  String    @id @default(cuid())
+  contractId          String
+  contract            Contract  @relation(fields: [contractId], references: [id])
+  overallRiskScore    Float
+  legalConfidence     Float
+  businessImpact      String
+  riskCategories      String
+  clauseRisks         String
+  summary             String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model Review {
+  id            String          @id @default(cuid())
+  reviewerId    String
+  reviewer      User            @relation(fields: [reviewerId], references: [id])
+  lawyerId      String
+  lawyer        LawyerProfile   @relation(fields: [lawyerId], references: [id])
+  rating        Int
+  comment       String?
+  createdAt     DateTime        @default(now())
+}
+
+model Booking {
+  id            String         @id @default(cuid())
+  clientId      String
+  client        User           @relation("ClientBookings", fields: [clientId], references: [id])
+  lawyerId      String
+  lawyer        LawyerProfile  @relation("LawyerBookings", fields: [lawyerId], references: [id])
+  startAt       DateTime
+  durationMins  Int
+  mode          String
+  status        BookingStatus  @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Subscription {
+  id                String              @id @default(cuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  planName          String
+  status            SubscriptionStatus  @default(ACTIVE)
+  startDate         DateTime            @default(now())
+  endDate           DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model Payment {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id])
+  amount            Decimal
+  currency          String          @default("USD")
+  stripePaymentId   String?
+  status            PaymentStatus   @default(PENDING)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Message {
+  id            String        @id @default(cuid())
+  contractId    String?
+  contract      Contract?     @relation(fields: [contractId], references: [id])
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  role          MessageRole   @default(USER)
+  content       String
+  createdAt     DateTime      @default(now())
+}
+
+model Notification {
+  id            String                @id @default(cuid())
+  userId        String
+  user          User                  @relation(fields: [userId], references: [id])
+  title         String
+  body          String
+  channel       NotificationChannel   @default(IN_APP)
+  readAt        DateTime?
+  createdAt     DateTime              @default(now())
+}
+
+model AuditLog {
+  id            String        @id @default(cuid())
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id])
+  action        AuditAction
+  entityType    String
+  entityId      String
+  details       String?
+  createdAt     DateTime      @default(now())
+}

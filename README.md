@@ -31,6 +31,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This app lives in the `legalos` subfolder.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To deploy the project on Vercel:
+
+1. Push the `legalos` directory to your repository.
+2. Create a new Vercel project and select the repository.
+3. Set the project root to `legalos` in Vercel settings.
+4. Set environment variables:
+   - `DATABASE_URL`
+   - `JWT_SECRET`
+5. Use the default build settings:
+   - Build command: `npm run build`
+   - Output directory: leave blank
+
+You may also use the included `vercel.json` file for a standard Next.js deployment.
+
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
